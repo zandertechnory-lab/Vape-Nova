@@ -1,0 +1,110 @@
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 1.5rem;
+}
+
+.left {
+    display: flex;
+    align-items: center;
+}
+
+.count {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+}
+
+.right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* Sort Dropdown */
+.sortContainer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+.sortIcon {
+    color: var(--color-text-secondary);
+}
+
+.sortSelect {
+    background: transparent;
+    border: none;
+    color: var(--color-text);
+    font-size: 0.875rem;
+    cursor: pointer;
+    outline: none;
+}
+
+.sortSelect:focus {
+    outline: none;
+}
+
+/* View Toggle */
+.viewToggle {
+    display: flex;
+    gap: 0.5rem;
+    background: var(--color-bg);
+    padding: 0.25rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+}
+
+.viewBtn {
+    padding: 0.5rem;
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.viewBtn:hover {
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.viewBtn.active {
+    background: var(--color-primary);
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .controls {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .left,
+    .right {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .right {
+        gap: 1rem;
+    }
+
+    .sortContainer {
+        flex: 1;
+    }
+}

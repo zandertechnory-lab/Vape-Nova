@@ -1,0 +1,71 @@
+.page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.container {
+    max-width: 450px;
+    width: 100%;
+    background-color: var(--color-surface);
+    padding: 3rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-lg);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    color: var(--color-text-muted);
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.error {
+    color: var(--color-error);
+    font-weight: 500;
+    text-align: center;
+    padding: 0.75rem;
+    background-color: rgba(239, 68, 68, 0.1);
+    border-radius: var(--radius-md);
+}
+
+.credentials {
+    background-color: rgba(20, 184, 166, 0.05);
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-primary);
+    text-align: center;
+}
+
+.credTitle {
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: 0.75rem;
+}
+
+.credentials p {
+    color: var(--color-text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.credentials strong {
+    color: var(--color-text);
+}

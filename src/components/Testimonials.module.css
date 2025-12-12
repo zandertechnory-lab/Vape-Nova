@@ -1,0 +1,178 @@
+.testimonials {
+    padding: 6rem 0;
+    background: linear-gradient(to bottom, var(--color-bg), var(--color-surface));
+    position: relative;
+    overflow: hidden;
+}
+
+.title {
+    font-size: 3rem;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.subtitle {
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 1.25rem;
+    margin-bottom: 4rem;
+}
+
+.carouselWrapper {
+    position: relative;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 4rem;
+}
+
+.carousel {
+    position: relative;
+    min-height: 300px;
+}
+
+.card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.5s ease;
+    pointer-events: none;
+    background: var(--color-surface);
+    padding: 3rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-lg);
+}
+
+.card.active {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+    position: relative;
+}
+
+.stars {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1.5rem;
+    justify-content: center;
+}
+
+.text {
+    font-size: 1.25rem;
+    line-height: 1.8;
+    color: var(--color-text);
+    margin-bottom: 2rem;
+    text-align: center;
+    font-style: italic;
+}
+
+.author {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+}
+
+.name {
+    font-weight: 600;
+    font-size: 1.125rem;
+}
+
+.role {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+}
+
+.arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+
+.arrow:hover {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+
+.prev {
+    left: 0;
+}
+
+.next {
+    right: 0;
+}
+
+.dots {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 3rem;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--color-border);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.dot.activeDot {
+    background-color: var(--color-primary);
+    transform: scale(1.2);
+}
+
+@media (max-width: 768px) {
+    .title {
+        font-size: 2rem;
+    }
+
+    .carouselWrapper {
+        padding: 0 3rem;
+    }
+
+    .card {
+        padding: 2rem;
+    }
+
+    .text {
+        font-size: 1rem;
+    }
+
+    .arrow {
+        width: 36px;
+        height: 36px;
+    }
+}

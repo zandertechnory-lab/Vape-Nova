@@ -1,0 +1,80 @@
+.brands {
+    padding: 4rem 0;
+    background: var(--color-bg);
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    text-align: center;
+    color: var(--color-text-muted);
+    margin-bottom: 3rem;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.brandCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.brandCard:hover {
+    transform: translateY(-5px);
+    border-color: var(--color-primary);
+    box-shadow: 0 10px 30px rgba(20, 184, 166, 0.15);
+}
+
+.logo {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-text-muted);
+    margin-bottom: 0.75rem;
+    transition: color 0.3s ease;
+    font-family: var(--font-mono);
+    letter-spacing: -0.05em;
+}
+
+.brandCard:hover .logo {
+    color: var(--color-primary);
+}
+
+.name {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    text-align: center;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+    }
+
+    .brandCard {
+        padding: 1.5rem 0.75rem;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+    }
+}
