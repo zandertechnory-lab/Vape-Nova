@@ -22,6 +22,7 @@ interface Product {
   stock: number;
   rating: number;
   numReviews: number;
+  slug?: string;
   variants?: Array<{ name: string; price: number; stock: number }>;
 }
 

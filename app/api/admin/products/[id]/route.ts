@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth-options";
 import connectDB from "@/lib/mongodb";
 import Product from "@/lib/models/Product";
 import { slugify } from "@/lib/utils";

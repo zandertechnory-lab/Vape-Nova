@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth-options";
 import connectDB from "@/lib/mongodb";
 import Order, { OrderStatus } from "@/lib/models/Order";
 import { sendStatusUpdateEmail } from "@/lib/email/email-service";
