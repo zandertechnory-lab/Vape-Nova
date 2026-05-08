@@ -1,7 +1,9 @@
 import { Resend } from 'resend';
 import { OrderStatus } from '../models/Order';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY || 'placeholder');
+}
 
 interface OrderEmailData {
     customerEmail: string;
@@ -42,7 +44,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
             day: 'numeric'
         });
 
-        await resend.emails.send({
+        await getResend().emails.send({
             from: 'VapeNova <orders@vapenova.com>',
             to: customerEmail,
             subject: `Order Confirmation - ${transactionId}`,
@@ -149,7 +151,7 @@ export async function sendStatusUpdateEmail(data: StatusUpdateEmailData) {
             ? `<p><strong>Tracking Number:</strong> ${trackingNumber}</p>`
             : '';
 
-        await resend.emails.send({
+        await getResend().emails.send({
             from: 'VapeNova <orders@vapenova.com>',
             to: customerEmail,
             subject: `${statusInfo.emoji} Order Update - ${transactionId}`,
