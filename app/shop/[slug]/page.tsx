@@ -10,10 +10,10 @@ import JsonLd from "@/components/json-ld";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://vapenovashop.com";
 
+export const dynamic = "force-dynamic";
+
 export async function generateStaticParams() {
-  await connectDB();
-  const products = await Product.find({}).select("slug").lean();
-  return products.map((product) => ({ slug: product.slug }));
+  return [];
 }
 
 export async function generateMetadata({
