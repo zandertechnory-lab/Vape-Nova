@@ -69,7 +69,7 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: "vapenova-cart",
-      storage: createJSONStorage(() => (typeof window !== "undefined" ? localStorage : localStorage)),
+      storage: createJSONStorage(() => (typeof window !== "undefined" ? localStorage : ({} as Storage))),
     }
   )
 );
