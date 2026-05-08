@@ -16,8 +16,9 @@ if (!global.mongoose) {
 }
 
 async function connectDB() {
-  if (!process.env.MONGODB_URL || process.env.MONGODB_URI) {
-    throw new Error("Please add your MONGODB_URI to .env.local");
+  const uri = process.env.MONGODB_URL || process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error("Please set MONGODB_URL in your environment variables.");
   }
 
   if (cached.conn) {
@@ -25,7 +26,7 @@ async function connectDB() {
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(process.env.MONGODB_URL || process.env.MONGODB_URI, {
+    cached.promise = mongoose.connect(uri, {
       bufferCommands: false,
     }).then((m) => m);
   }
