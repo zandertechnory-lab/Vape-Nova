@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatPrice } from "@/lib/utils";
@@ -10,11 +10,7 @@ import Footer from "@/components/footer";
 
 interface Order {
   _id: string;
-  orderItems: Array<{
-    name: string;
-    quantity: number;
-    price: number;
-  }>;
+  orderItems: Array<{ name: string; quantity: number; price: number }>;
   totalPrice: number;
   isPaid: boolean;
   isDelivered: boolean;
@@ -23,26 +19,19 @@ interface Order {
 }
 
 export default function AdminOrdersPage() {
-  const { data: session, status } = useSession();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const isAdmin = isLoaded && (user?.publicMetadata as any)?.role === "admin";
+
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/account/signin");
-      return;
-    }
-
-    if (session && (session.user as any)?.role !== "admin") {
-      router.push("/");
-      return;
-    }
-
-    if (session) {
-      fetchOrders();
-    }
-  }, [session, status, router]);
+    if (!isLoaded) return;
+    if (!user) { router.push("/sign-in"); return; }
+    if (!isAdmin) { router.push("/"); return; }
+    fetchOrders();
+  }, [isLoaded, user, isAdmin, router]);
 
   const fetchOrders = async () => {
     try {
@@ -56,13 +45,11 @@ export default function AdminOrdersPage() {
     }
   };
 
-  if (status === "loading" || loading) {
-    return <div>Loading...</div>;
+  if (!isLoaded || loading) {
+    return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
   }
 
-  if (!session || (session.user as any)?.role !== "admin") {
-    return null;
-  }
+  if (!isAdmin) return null;
 
   return (
     <div className="min-h-screen">
@@ -75,22 +62,16 @@ export default function AdminOrdersPage() {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle>Order #{order._id.slice(-8)}</CardTitle>
-                  <div className="text-sm">
-                    <span className={`px-2 py-1 rounded ${
-                      order.isPaid ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"
-                    }`}>
-                      {order.isPaid ? "Paid" : "Pending"}
-                    </span>
-                  </div>
+                  <span className={`px-2 py-1 rounded text-sm ${order.isPaid ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"}`}>
+                    {order.isPaid ? "Paid" : "Pending"}
+                  </span>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 mb-4">
                   {order.orderItems.map((item, index) => (
                     <div key={index} className="flex justify-between text-sm">
-                      <span>
-                        {item.name} x{item.quantity}
-                      </span>
+                      <span>{item.name} x{item.quantity}</span>
                       <span>{formatPrice(item.price * item.quantity)}</span>
                     </div>
                   ))}
@@ -99,9 +80,7 @@ export default function AdminOrdersPage() {
                   <div className="text-sm text-gray-400">
                     Payment: {order.paymentMethod} • {new Date(order.createdAt).toLocaleDateString()}
                   </div>
-                  <p className="text-xl font-bold">
-                    Total: {formatPrice(order.totalPrice)}
-                  </p>
+                  <p className="text-xl font-bold">Total: {formatPrice(order.totalPrice)}</p>
                 </div>
               </CardContent>
             </Card>
@@ -112,4 +91,3 @@ export default function AdminOrdersPage() {
     </div>
   );
 }
-

@@ -67,12 +67,12 @@ export default function ShopPage({
       <Navbar />
 
       {/* Category Banners */}
-      <section className="relative w-full bg-gradient-to-br from-purple-900/20 via-blue-900/20 to-pink-900/20 py-12 mt-16">
+      <section className="relative w-full bg-gradient-to-br from-purple-900/20 via-blue-900/20 to-pink-900/20 py-10 mt-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-8 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent">
+          <h2 className="text-2xl sm:text-4xl font-bold text-center mb-6 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent">
             Shop by Category
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="relative group overflow-hidden rounded-2xl h-64 cursor-pointer">
               <Image
                 src="/images/categories/mighty-vaporizer.jpg"
@@ -127,15 +127,15 @@ export default function ShopPage({
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-8">
         <Breadcrumb items={breadcrumbs} />
-        <div className="flex flex-col lg:flex-row gap-8">
-          <aside className="lg:w-64 flex-shrink-0">
+        <div className="flex flex-col lg:flex-row gap-6">
+          <aside className="lg:w-56 flex-shrink-0">
             <FilterSidebar />
           </aside>
-          <main className="flex-1">
-            <h1 className="text-4xl font-bold mb-8">
-              {searchParams.category ? `${searchParams.category}` : "All Products"}
+          <main className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-4xl font-bold mb-6">
+              {searchParams.category ? searchParams.category : "All Products"}
             </h1>
             <Suspense fallback={<div>Loading products...</div>}>
               <ProductGrid

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,8 +19,9 @@ const subcategories = {
 };
 
 export default function EditProductPage({ params }: { params: { id: string } }) {
-  const { data: session, status } = useSession();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
+  const isAdmin = isLoaded && (user?.publicMetadata as any)?.role === "admin";
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [formData, setFormData] = useState({
@@ -35,20 +36,11 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   });
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/account/signin");
-      return;
-    }
-
-    if (session && (session.user as any)?.role !== "admin") {
-      router.push("/");
-      return;
-    }
-
-    if (session) {
-      fetchProduct();
-    }
-  }, [session, status, router, params.id]);
+    if (!isLoaded) return;
+    if (!user) { router.push("/sign-in"); return; }
+    if (!isAdmin) { router.push("/"); return; }
+    fetchProduct();
+  }, [isLoaded, user, isAdmin, router, params.id]);
 
   const fetchProduct = async () => {
     try {
@@ -107,13 +99,11 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     }
   };
 
-  if (status === "loading" || fetching) {
-    return <div>Loading...</div>;
+  if (!isLoaded || fetching) {
+    return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
   }
 
-  if (!session || (session.user as any)?.role !== "admin") {
-    return null;
-  }
+  if (!isAdmin) return null;
 
   return (
     <div className="min-h-screen">

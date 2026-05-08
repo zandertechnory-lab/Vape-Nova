@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -20,26 +20,19 @@ interface Product {
 }
 
 export default function AdminProductsPage() {
-  const { data: session, status } = useSession();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const isAdmin = isLoaded && (user?.publicMetadata as any)?.role === "admin";
+
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/account/signin");
-      return;
-    }
-
-    if (session && (session.user as any)?.role !== "admin") {
-      router.push("/");
-      return;
-    }
-
-    if (session) {
-      fetchProducts();
-    }
-  }, [session, status, router]);
+    if (!isLoaded) return;
+    if (!user) { router.push("/sign-in"); return; }
+    if (!isAdmin) { router.push("/"); return; }
+    fetchProducts();
+  }, [isLoaded, user, isAdmin, router]);
 
   const fetchProducts = async () => {
     try {
@@ -54,33 +47,25 @@ export default function AdminProductsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this product?")) {
-      return;
-    }
-
+    if (!confirm("Are you sure you want to delete this product?")) return;
     try {
-      const res = await fetch(`/api/admin/products/${id}`, {
-        method: "DELETE",
-      });
-
+      const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
       if (res.ok) {
         toast.success("Product deleted");
         fetchProducts();
       } else {
         toast.error("Failed to delete product");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred");
     }
   };
 
-  if (status === "loading" || loading) {
-    return <div>Loading...</div>;
+  if (!isLoaded || loading) {
+    return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
   }
 
-  if (!session || (session.user as any)?.role !== "admin") {
-    return null;
-  }
+  if (!isAdmin) return null;
 
   return (
     <div className="min-h-screen">
@@ -108,10 +93,7 @@ export default function AdminProductsPage() {
                     <Link href={`/admin/products/${product._id}`}>
                       <Button variant="outline">Edit</Button>
                     </Link>
-                    <Button
-                      variant="destructive"
-                      onClick={() => handleDelete(product._id)}
-                    >
+                    <Button variant="destructive" onClick={() => handleDelete(product._id)}>
                       Delete
                     </Button>
                   </div>
@@ -125,4 +107,3 @@ export default function AdminProductsPage() {
     </div>
   );
 }
-

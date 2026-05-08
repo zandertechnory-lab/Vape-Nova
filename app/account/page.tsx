@@ -1,7 +1,8 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,17 +10,21 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
 export default function AccountPage() {
-  const { data: session, status } = useSession();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
 
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
+  useEffect(() => {
+    if (isLoaded && !user) {
+      router.push("/sign-in");
+    }
+  }, [isLoaded, user, router]);
 
-  if (!session) {
-    router.push("/account/signin");
-    return null;
-  }
+  if (!isLoaded) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
+  if (!user) return null;
+
+  const isAdmin = (user.publicMetadata as any)?.role === "admin";
+  const email = user.emailAddresses?.[0]?.emailAddress || "";
+  const name = user.firstName ? `${user.firstName} ${user.lastName || ""}`.trim() : user.username || "User";
 
   return (
     <div className="min-h-screen">
@@ -33,10 +38,10 @@ export default function AccountPage() {
             </CardHeader>
             <CardContent>
               <p className="mb-2">
-                <span className="font-medium">Name:</span> {session.user.name}
+                <span className="font-medium">Name:</span> {name}
               </p>
               <p>
-                <span className="font-medium">Email:</span> {session.user.email}
+                <span className="font-medium">Email:</span> {email}
               </p>
             </CardContent>
           </Card>
@@ -50,7 +55,7 @@ export default function AccountPage() {
                   My Orders
                 </Button>
               </Link>
-              {(session.user as any)?.role === "admin" && (
+              {isAdmin && (
                 <Link href="/admin" className="block">
                   <Button variant="outline" className="w-full justify-start">
                     Admin Panel
@@ -65,4 +70,3 @@ export default function AccountPage() {
     </div>
   );
 }
-

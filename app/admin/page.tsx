@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -9,29 +9,18 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
 export default function AdminPage() {
-  const { data: session, status } = useSession();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
-  const [stats, setStats] = useState({
-    products: 0,
-    orders: 0,
-    users: 0,
-  });
+  const [stats, setStats] = useState({ products: 0, orders: 0, users: 0 });
+
+  const isAdmin = isLoaded && (user?.publicMetadata as any)?.role === "admin";
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/account/signin?callbackUrl=/admin");
-      return;
-    }
-
-    if (session && (session.user as any)?.role !== "admin") {
-      router.push("/");
-      return;
-    }
-
-    if (session) {
-      fetchStats();
-    }
-  }, [session, status, router]);
+    if (!isLoaded) return;
+    if (!user) { router.push("/sign-in"); return; }
+    if (!isAdmin) { router.push("/"); return; }
+    fetchStats();
+  }, [isLoaded, user, isAdmin, router]);
 
   const fetchStats = async () => {
     try {
@@ -40,11 +29,9 @@ export default function AdminPage() {
         fetch("/api/admin/orders"),
         fetch("/api/admin/users"),
       ]);
-
       const products = await productsRes.json();
       const orders = await ordersRes.json();
       const users = await usersRes.json();
-
       setStats({
         products: products.count || 0,
         orders: orders.count || 0,
@@ -55,13 +42,8 @@ export default function AdminPage() {
     }
   };
 
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
-
-  if (!session || (session.user as any)?.role !== "admin") {
-    return null;
-  }
+  if (!isLoaded) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
+  if (!isAdmin) return null;
 
   return (
     <div className="min-h-screen">
@@ -70,59 +52,35 @@ export default function AdminPage() {
         <h1 className="text-4xl font-bold mb-8">Admin Dashboard</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
-            <CardHeader>
-              <CardTitle>Products</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{stats.products}</p>
-            </CardContent>
+            <CardHeader><CardTitle>Products</CardTitle></CardHeader>
+            <CardContent><p className="text-3xl font-bold">{stats.products}</p></CardContent>
           </Card>
           <Card>
-            <CardHeader>
-              <CardTitle>Orders</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{stats.orders}</p>
-            </CardContent>
+            <CardHeader><CardTitle>Orders</CardTitle></CardHeader>
+            <CardContent><p className="text-3xl font-bold">{stats.orders}</p></CardContent>
           </Card>
           <Card>
-            <CardHeader>
-              <CardTitle>Users</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{stats.users}</p>
-            </CardContent>
+            <CardHeader><CardTitle>Users</CardTitle></CardHeader>
+            <CardContent><p className="text-3xl font-bold">{stats.users}</p></CardContent>
           </Card>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link href="/admin/products">
             <Card className="hover:shadow-lg transition-all cursor-pointer">
-              <CardHeader>
-                <CardTitle>Manage Products</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-400">Add, edit, or delete products</p>
-              </CardContent>
+              <CardHeader><CardTitle>Manage Products</CardTitle></CardHeader>
+              <CardContent><p className="text-gray-400">Add, edit, or delete products</p></CardContent>
             </Card>
           </Link>
           <Link href="/admin/orders">
             <Card className="hover:shadow-lg transition-all cursor-pointer">
-              <CardHeader>
-                <CardTitle>Manage Orders</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-400">View and manage customer orders</p>
-              </CardContent>
+              <CardHeader><CardTitle>Manage Orders</CardTitle></CardHeader>
+              <CardContent><p className="text-gray-400">View and manage customer orders</p></CardContent>
             </Card>
           </Link>
           <Link href="/admin/blog">
             <Card className="hover:shadow-lg transition-all cursor-pointer">
-              <CardHeader>
-                <CardTitle>Manage Blog</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-400">Create and manage blog posts</p>
-              </CardContent>
+              <CardHeader><CardTitle>Manage Blog</CardTitle></CardHeader>
+              <CardContent><p className="text-gray-400">Create and manage blog posts</p></CardContent>
             </Card>
           </Link>
         </div>
@@ -131,4 +89,3 @@ export default function AdminPage() {
     </div>
   );
 }
-

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatPrice } from "@/lib/utils";
@@ -22,21 +22,18 @@ interface Order {
 }
 
 export default function OrdersPage() {
-  const { data: session, status } = useSession();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/account/signin");
+    if (isLoaded && !user) {
+      router.push("/sign-in");
       return;
     }
-
-    if (session) {
-      fetchOrders();
-    }
-  }, [session, status, router]);
+    if (user) fetchOrders();
+  }, [user, isLoaded, router]);
 
   const fetchOrders = async () => {
     try {
@@ -50,8 +47,8 @@ export default function OrdersPage() {
     }
   };
 
-  if (status === "loading" || loading) {
-    return <div>Loading...</div>;
+  if (!isLoaded || loading) {
+    return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
   }
 
   return (
@@ -81,9 +78,7 @@ export default function OrdersPage() {
                   <div className="space-y-2 mb-4">
                     {order.orderItems.map((item, index) => (
                       <div key={index} className="flex justify-between text-sm">
-                        <span>
-                          {item.name} x{item.quantity}
-                        </span>
+                        <span>{item.name} x{item.quantity}</span>
                         <span>{formatPrice(item.price * item.quantity)}</span>
                       </div>
                     ))}
@@ -95,9 +90,7 @@ export default function OrdersPage() {
                         {order.isDelivered ? "Delivered" : "Processing"}
                       </p>
                     </div>
-                    <p className="text-xl font-bold">
-                      Total: {formatPrice(order.totalPrice)}
-                    </p>
+                    <p className="text-xl font-bold">Total: {formatPrice(order.totalPrice)}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -109,4 +102,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-

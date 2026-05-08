@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -10,28 +10,18 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
 export default function AdminBlogPage() {
-  const { data: session, status } = useSession();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
+  const isAdmin = isLoaded && (user?.publicMetadata as any)?.role === "admin";
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/account/signin");
-      return;
-    }
+    if (!isLoaded) return;
+    if (!user) { router.push("/sign-in"); return; }
+    if (!isAdmin) { router.push("/"); return; }
+  }, [isLoaded, user, isAdmin, router]);
 
-    if (session && (session.user as any)?.role !== "admin") {
-      router.push("/");
-      return;
-    }
-  }, [session, status, router]);
-
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
-
-  if (!session || (session.user as any)?.role !== "admin") {
-    return null;
-  }
+  if (!isLoaded) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
+  if (!isAdmin) return null;
 
   return (
     <div className="min-h-screen">

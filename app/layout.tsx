@@ -4,8 +4,11 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Toaster } from "react-hot-toast";
 import AgeVerificationModal from "@/components/age-verification-modal";
-import FloatingVapes from "@/components/floating-vapes";
-import PageTransition from "@/components/page-transition";
+import FreeShippingBanner from "@/components/free-shipping-banner";
+import BackToTop from "@/components/back-to-top";
+import WhatsAppButton from "@/components/whatsapp-button";
+import CookieConsent from "@/components/cookie-consent";
+import CompareDrawer from "@/components/compare-drawer";
 import LiveChat from "@/components/live-chat";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -41,46 +44,34 @@ export const metadata: Metadata = {
     title: "VapeNova | Premium Vapes, Vaporizers & Gummies Online",
     description:
       "Shop premium vapes, Mighty & Volcano vaporizers, CBD vape pens, and mushroom gummies at VapeNova. Free shipping on orders over $50.",
-    images: [
-      {
-        url: "/images/hero/vaping-lifestyle.png",
-        width: 1200,
-        height: 630,
-        alt: "VapeNova - Premium Vapes & Vaporizers",
-      },
-    ],
+    images: [{ url: "/images/hero/vaping-lifestyle.png", width: 1200, height: 630, alt: "VapeNova - Premium Vapes & Vaporizers" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "VapeNova | Premium Vapes, Vaporizers & Gummies Online",
-    description:
-      "Shop premium vapes, Mighty & Volcano vaporizers, CBD vape pens, and mushroom gummies at VapeNova.",
+    description: "Shop premium vapes, Mighty & Volcano vaporizers, CBD vape pens, and mushroom gummies at VapeNova.",
     images: ["/images/hero/vaping-lifestyle.png"],
     creator: "@vapenovashop",
   },
-  alternates: {
-    canonical: SITE_URL,
-  },
-  verification: {
-    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "",
-  },
+  alternates: { canonical: SITE_URL },
+  verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "" },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <body className={inter.className}>
+        <FreeShippingBanner />
         <AgeVerificationModal />
-        <FloatingVapes />
         <Providers>
-          <PageTransition>
+          <div className="pt-8">{/* offset for shipping banner */}
             {children}
-          </PageTransition>
-          <Toaster position="top-right" />
+          </div>
+          <CompareDrawer />
+          <BackToTop />
+          <WhatsAppButton />
+          <CookieConsent />
+          <Toaster position="top-right" toastOptions={{ style: { marginTop: "2rem" } }} />
         </Providers>
         <LiveChat />
       </body>

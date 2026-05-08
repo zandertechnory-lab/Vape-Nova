@@ -1,7 +1,8 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IReview extends Document {
-  user: mongoose.Types.ObjectId;
+  user: string; // Clerk userId
+  userName: string;
   product: mongoose.Types.ObjectId;
   rating: number;
   title: string;
@@ -15,9 +16,12 @@ export interface IReview extends Document {
 const ReviewSchema: Schema = new Schema(
   {
     user: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
+      type: String,
       required: true,
+    },
+    userName: {
+      type: String,
+      default: "Anonymous",
     },
     product: {
       type: Schema.Types.ObjectId,
@@ -62,4 +66,3 @@ ReviewSchema.index({ product: 1, createdAt: -1 });
 const Review: Model<IReview> = mongoose.models.Review || mongoose.model<IReview>("Review", ReviewSchema);
 
 export default Review;
-

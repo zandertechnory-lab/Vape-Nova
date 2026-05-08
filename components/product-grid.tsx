@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/store/cart-store";
 import { useWishlistStore } from "@/store/wishlist-store";
 import { formatPrice } from "@/lib/utils";
-import { ShoppingCart, Heart } from "lucide-react";
-import { motion } from "framer-motion";
+import { ShoppingCart, Heart, GitCompare } from "lucide-react";
 import toast from "react-hot-toast";
+import { useCompareStore } from "@/store/compare-store";
 
 interface Product {
   _id: string;
@@ -22,6 +22,7 @@ interface Product {
   subcategory: string;
   featured: boolean;
   stock: number;
+  rating?: number;
 }
 
 export default function ProductGrid({
@@ -37,6 +38,7 @@ export default function ProductGrid({
   const [loading, setLoading] = useState(true);
   const addItem = useCartStore((state) => state.addItem);
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore();
+  const { addItem: addToCompare, removeItem: removeFromCompare, isInCompare } = useCompareStore();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -70,105 +72,138 @@ export default function ProductGrid({
   };
 
   if (loading) {
-    return <div className="text-center py-12">Loading products...</div>;
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        {[...Array(8)].map((_, i) => (
+          <div key={i} className="rounded-lg bg-gray-800 animate-pulse">
+            <div className="aspect-square" />
+            <div className="p-3 space-y-2">
+              <div className="h-4 bg-gray-700 rounded w-3/4" />
+              <div className="h-5 bg-gray-700 rounded w-1/2" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   }
 
   if (products.length === 0) {
-    return <div className="text-center py-12">No products found.</div>;
+    return (
+      <div className="text-center py-16">
+        <p className="text-gray-400 text-lg">No products found.</p>
+      </div>
+    );
   }
 
   return (
-    <div className="grid grid-cols-4 gap-2 sm:gap-4 md:gap-6">
-      {products.map((product, index) => (
-        <motion.div
-          key={product._id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.05 }}
-        >
-          <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+      {products.map((product) => (
+        <Card key={product._id} className="overflow-hidden hover:shadow-xl transition-shadow duration-200 group">
+          <Link href={`/shop/${product.slug}`}>
+            <div className="aspect-square bg-gray-800 relative overflow-hidden">
+              {product.images[0] ? (
+                <Image
+                  src={product.images[0]}
+                  alt={product.name}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-xs">
+                  No Image
+                </div>
+              )}
+              {product.featured && (
+                <span className="absolute top-2 right-2 bg-primary text-primary-foreground px-2 py-0.5 rounded text-xs font-bold">
+                  Featured
+                </span>
+              )}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  const inWishlist = isInWishlist(product._id);
+                  if (inWishlist) {
+                    removeFromWishlist(product._id);
+                    toast.success("Removed from wishlist");
+                  } else {
+                    addToWishlist({
+                      id: product._id,
+                      name: product.name,
+                      price: product.price,
+                      image: product.images[0] || "/placeholder.jpg",
+                      slug: product.slug,
+                    });
+                    toast.success("Added to wishlist");
+                  }
+                }}
+                className="absolute top-2 left-2 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors z-10"
+                aria-label="Add to wishlist"
+              >
+                <Heart
+                  className={`w-4 h-4 ${isInWishlist(product._id) ? "fill-red-500 text-red-500" : "text-white"}`}
+                />
+              </button>
+            </div>
+          </Link>
+          <CardContent className="p-3 md:p-4">
             <Link href={`/shop/${product.slug}`}>
-              <div className="aspect-square bg-gray-800 relative overflow-hidden">
-                {product.images[0] ? (
-                  <Image
-                    src={product.images[0]}
-                    alt={product.name}
-                    fill
-                    sizes="(max-width: 640px) 25vw, (max-width: 768px) 25vw, (max-width: 1024px) 25vw, 25vw"
-                    className="object-cover group-hover:scale-110 transition-transform duration-300"
-                    priority={index < 8}
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-xs">
-                    No Image
-                  </div>
-                )}
-                {product.featured && (
-                  <div className="absolute top-1 right-1 bg-primary text-primary-foreground px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-bold">
-                    Featured
-                  </div>
-                )}
-                {/* Wishlist Heart Button */}
-                <button
+              <h3 className="font-semibold text-sm md:text-base mb-1 hover:text-primary transition-colors line-clamp-2 leading-snug">
+                {product.name}
+              </h3>
+            </Link>
+            <p className="text-xs text-gray-400 mb-1 hidden sm:block">{product.category}</p>
+            {product.stock > 0 && product.stock <= 5 && (
+              <p className="text-xs text-orange-400 font-medium mb-1">Only {product.stock} left!</p>
+            )}
+            <div className="flex items-center justify-between gap-2 mt-2">
+              <p className="text-base md:text-lg font-bold text-primary">
+                {formatPrice(product.price)}
+              </p>
+              <div className="flex gap-1 items-center">
+                <Button
+                  size="sm"
+                  variant={isInCompare(product._id) ? "default" : "outline"}
                   onClick={(e) => {
                     e.preventDefault();
-                    const inWishlist = isInWishlist(product._id);
-                    if (inWishlist) {
-                      removeFromWishlist(product._id);
-                      toast.success("Removed from wishlist");
+                    if (isInCompare(product._id)) {
+                      removeFromCompare(product._id);
                     } else {
-                      addToWishlist({
+                      addToCompare({
                         id: product._id,
                         name: product.name,
-                        price: product.price,
-                        image: product.images[0] || "/placeholder.jpg",
                         slug: product.slug,
+                        price: product.price,
+                        image: product.images[0] || "",
+                        category: product.category,
+                        rating: (product as any).rating ?? 0,
+                        stock: product.stock,
                       });
-                      toast.success("Added to wishlist");
+                      toast.success("Added to compare!");
                     }
                   }}
-                  className="absolute top-1 left-1 sm:top-2 sm:left-2 p-1.5 sm:p-2 bg-black/50 hover:bg-black/70 rounded-full transition-all z-10"
+                  className="h-8 w-8 p-0 hidden sm:flex"
+                  title="Compare"
                 >
-                  <Heart
-                    className={`w-3 h-3 sm:w-4 sm:h-4 ${isInWishlist(product._id)
-                        ? "fill-red-500 text-red-500"
-                        : "text-white"
-                      }`}
-                  />
-                </button>
-              </div>
-            </Link>
-            <CardContent className="p-2 sm:p-3 md:p-4">
-              <Link href={`/shop/${product.slug}`}>
-                <h3 className="font-semibold text-xs sm:text-sm md:text-base mb-1 sm:mb-2 hover:text-primary transition-colors line-clamp-2">
-                  {product.name}
-                </h3>
-              </Link>
-              <p className="text-[10px] sm:text-xs text-gray-400 mb-1 sm:mb-2 hidden sm:block">
-                {product.category}
-              </p>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 sm:gap-2">
-                <p className="text-sm sm:text-lg md:text-2xl font-bold text-primary">
-                  {formatPrice(product.price)}
-                </p>
+                  <GitCompare className="h-3.5 w-3.5" />
+                </Button>
                 <Button
                   size="sm"
                   onClick={() => handleAddToCart(product)}
                   disabled={product.stock === 0}
-                  className="w-full sm:w-auto text-[10px] sm:text-xs h-7 sm:h-8 px-2 sm:px-3"
+                  className="h-8 px-3 text-xs shrink-0"
                 >
-                  <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
+                  <ShoppingCart className="h-3.5 w-3.5 sm:mr-1" />
                   <span className="hidden sm:inline">Add</span>
                 </Button>
               </div>
-              {product.stock === 0 && (
-                <p className="text-[10px] sm:text-xs text-destructive mt-1 sm:mt-2">Out of Stock</p>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
+            </div>
+            {product.stock === 0 && (
+              <p className="text-xs text-destructive mt-1">Out of Stock</p>
+            )}
+          </CardContent>
+        </Card>
       ))}
     </div>
   );
 }
-

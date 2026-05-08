@@ -1,6 +1,6 @@
-﻿import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth-options";
+import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/lib/clerk-auth";
+import { currentUser } from "@clerk/nextjs/server";
 import connectDB from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
 import Product from "@/lib/models/Product";
@@ -9,12 +9,10 @@ import { sendOrderConfirmationEmail } from "@/lib/email/email-service";
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const { error, userId } = await requireAuth();
+    if (error) return error;
 
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    const user = await currentUser();
     await connectDB();
 
     const body = await request.json();
@@ -32,26 +30,22 @@ export async function POST(request: NextRequest) {
     for (const item of orderItems) {
       const product = await Product.findById(item.id);
       if (!product) {
-        return NextResponse.json(
-          { error: `Product ${item.name} not found` },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: `Product ${item.name} not found` }, { status: 404 });
       }
       if (product.stock < item.quantity) {
-        return NextResponse.json(
-          { error: `Insufficient stock for ${item.name}` },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: `Insufficient stock for ${item.name}` }, { status: 400 });
       }
     }
 
-    // Generate transaction ID
     const transactionId = generateTransactionId();
     const estimatedDelivery = calculateEstimatedDelivery();
+    const customerEmail = user?.emailAddresses?.[0]?.emailAddress || shippingAddress.email;
+    const customerName = user?.firstName
+      ? `${user.firstName} ${user.lastName || ""}`.trim()
+      : shippingAddress.fullName;
 
-    // Create order
     const order = new Order({
-      user: session.user.id,
+      user: userId,
       transactionId,
       orderItems: orderItems.map((item: any) => ({
         product: item.id,
@@ -68,30 +62,24 @@ export async function POST(request: NextRequest) {
       totalPrice,
       isPaid: false,
       isDelivered: false,
-      status: 'Pending',
-      statusHistory: [{
-        status: 'Pending',
-        timestamp: new Date(),
-        note: 'Order placed successfully'
-      }],
+      status: "Pending",
+      statusHistory: [{ status: "Pending", timestamp: new Date(), note: "Order placed successfully" }],
       estimatedDelivery,
-      customerEmail: session.user.email || shippingAddress.email,
+      customerEmail,
     });
 
     await order.save();
 
     // Update product stock
     for (const item of orderItems) {
-      await Product.findByIdAndUpdate(item.id, {
-        $inc: { stock: -item.quantity },
-      });
+      await Product.findByIdAndUpdate(item.id, { $inc: { stock: -item.quantity } });
     }
 
     // Send confirmation email
-    if (session.user.email) {
+    if (customerEmail) {
       await sendOrderConfirmationEmail({
-        customerEmail: session.user.email,
-        customerName: session.user.name || shippingAddress.fullName,
+        customerEmail,
+        customerName,
         transactionId,
         orderItems: orderItems.map((item: any) => ({
           name: item.name,
@@ -109,36 +97,22 @@ export async function POST(request: NextRequest) {
         transactionId: order.transactionId,
         status: order.status,
         estimatedDelivery: order.estimatedDelivery,
-      }
+      },
     }, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { error, userId } = await requireAuth();
+    if (error) return error;
 
     await connectDB();
-
-    const orders = await Order.find({ user: session.user.id })
-      .sort({ createdAt: -1 })
-      .lean();
-
+    const orders = await Order.find({ user: userId }).sort({ createdAt: -1 }).lean();
     return NextResponse.json({ orders }, { status: 200 });
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-

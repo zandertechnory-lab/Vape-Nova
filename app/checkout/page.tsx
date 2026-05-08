@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cart-store";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,7 @@ const paymentMethods = [
 ];
 
 export default function CheckoutPage() {
-  const { data: session } = useSession();
+  const { user } = useUser();
   const router = useRouter();
   const { items, getTotalPrice, clearCart } = useCartStore();
   const [selectedPayment, setSelectedPayment] = useState<string>("");
@@ -55,10 +55,13 @@ export default function CheckoutPage() {
   });
   const [loading, setLoading] = useState(false);
 
-  if (items.length === 0) {
-    router.push("/cart");
-    return null;
-  }
+  useEffect(() => {
+    if (items.length === 0) {
+      router.push("/cart");
+    }
+  }, [items.length, router]);
+
+  if (items.length === 0) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

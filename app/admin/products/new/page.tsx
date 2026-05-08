@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,8 +19,9 @@ const subcategories = {
 };
 
 export default function NewProductPage() {
-  const { data: session, status } = useSession();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
+  const isAdmin = isLoaded && (user?.publicMetadata as any)?.role === "admin";
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -33,14 +34,8 @@ export default function NewProductPage() {
     images: [] as string[],
   });
 
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
-
-  if (!session || (session.user as any)?.role !== "admin") {
-    router.push("/");
-    return null;
-  }
+  if (!isLoaded) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
+  if (!isAdmin) { router.push("/"); return null; }
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;

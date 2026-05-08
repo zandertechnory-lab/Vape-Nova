@@ -7,7 +7,13 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
-      "mcp__6958935c-0186-4647-84e4-22c8e2efa552__get_deployment_build_logs"
+      "mcp__6958935c-0186-4647-84e4-22c8e2efa552__get_deployment_build_logs",
+      "mcp__6958935c-0186-4647-84e4-22c8e2efa552__get_runtime_logs",
+      "mcp__6958935c-0186-4647-84e4-22c8e2efa552__web_fetch_vercel_url",
+      "Bash(npx vercel *)",
+      "Bash(ping -n 20 127.0.0.1)",
+      "Bash(ping -n 35 127.0.0.1)",
+      "Bash(npm install *)"
     ]
   }
 }

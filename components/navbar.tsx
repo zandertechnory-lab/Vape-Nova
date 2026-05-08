@@ -2,217 +2,155 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
-import { ShoppingCart, Menu, X, User, LogOut } from "lucide-react";
+import { useUser, UserButton, SignInButton } from "@clerk/nextjs";
+import { ShoppingCart, Menu, X } from "lucide-react";
 import { useCartStore } from "@/store/cart-store";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
 import SearchBar from "@/components/search-bar";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { data: session } = useSession();
+  const { user, isLoaded } = useUser();
   const totalItems = useCartStore((state) => state.getTotalItems());
+  const isAdmin = (user?.publicMetadata as any)?.role === "admin";
 
   useEffect(() => {
-    let lastScrollY = window.scrollY;
-
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      setIsScrolled(currentScrollY > 100);
-      lastScrollY = currentScrollY;
-    };
-
-    window.addEventListener("scroll", handleScroll);
+    const handleScroll = () => setIsScrolled(window.scrollY > 60);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const navLinks = [
+    { href: "/", label: "Home" },
+    { href: "/shop", label: "Shop" },
+    { href: "/about", label: "About" },
+    { href: "/blog", label: "Blog" },
+    { href: "/track-order", label: "Track Order" },
+    { href: "/contact", label: "Contact" },
+  ];
+
   return (
     <>
-      <motion.nav
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className={`fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b transition-all duration-300 ${isScrolled ? "shadow-lg" : ""
-          }`}
+      <nav
+        className={`fixed top-8 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b transition-shadow duration-300 ${
+          isScrolled ? "shadow-lg" : ""
+        }`}
       >
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16 md:h-20">
+          <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent">
+            <Link href="/" className="shrink-0">
+              <span className="text-2xl font-bold bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent">
                 VapeNova
-              </div>
+              </span>
             </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-6">
-              <Link
-                href="/"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Home
-              </Link>
-              <Link
-                href="/shop"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Shop
-              </Link>
-              <Link
-                href="/about"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                About
-              </Link>
-              <Link
-                href="/blog"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Blog
-              </Link>
-              <Link
-                href="/track-order"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Track Order
-              </Link>
-              <Link
-                href="/contact"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Contact
-              </Link>
+            {/* Desktop Nav Links */}
+            <div className="hidden md:flex items-center space-x-5">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap"
+                >
+                  {link.label}
+                </Link>
+              ))}
             </div>
 
-            {/* Search Bar - Desktop */}
-            <div className="hidden lg:flex flex-1 max-w-md mx-6">
+            {/* Search Bar — Desktop */}
+            <div className="hidden lg:flex flex-1 max-w-sm mx-5">
               <SearchBar />
             </div>
 
-            {/* Right Side Actions */}
-            <div className="flex items-center space-x-4">
-              {session ? (
-                <>
-                  <Link href="/account">
-                    <Button variant="ghost" size="icon">
-                      <User className="h-5 w-5" />
-                    </Button>
-                  </Link>
-                  {(session.user as any)?.role === "admin" && (
-                    <Link href="/admin">
-                      <Button variant="outline" size="sm">
-                        Admin
-                      </Button>
-                    </Link>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => signOut()}
-                  >
-                    <LogOut className="h-5 w-5" />
-                  </Button>
-                </>
-              ) : (
-                <Link href="/account/signin">
-                  <Button variant="ghost" size="sm">
-                    Sign In
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              {isAdmin && (
+                <Link href="/admin">
+                  <Button variant="outline" size="sm" className="hidden sm:flex text-xs">
+                    Admin
                   </Button>
                 </Link>
               )}
 
+              {isLoaded && (
+                user ? (
+                  <UserButton afterSignOutUrl="/" />
+                ) : (
+                  <SignInButton mode="redirect">
+                    <Button variant="ghost" size="sm" className="hidden sm:flex">
+                      Sign In
+                    </Button>
+                  </SignInButton>
+                )
+              )}
+
               <Link href="/cart" className="relative">
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" aria-label="Cart">
                   <ShoppingCart className="h-5 w-5" />
                   {totalItems > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
                       {totalItems}
                     </span>
                   )}
                 </Button>
               </Link>
 
-              {/* Mobile Menu Button */}
               <Button
                 variant="ghost"
                 size="icon"
                 className="md:hidden"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-label="Toggle menu"
               >
-                {isMobileMenuOpen ? (
-                  <X className="h-5 w-5" />
-                ) : (
-                  <Menu className="h-5 w-5" />
-                )}
+                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
             </div>
           </div>
         </div>
-      </motion.nav>
+      </nav>
 
       {/* Mobile Menu */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="fixed top-16 md:top-20 left-0 right-0 bg-background border-b z-40 md:hidden"
-          >
-            <div className="container mx-auto px-4 py-4 space-y-3">
-              {/* Search Bar - Mobile */}
-              <div className="mb-4">
-                <SearchBar />
-              </div>
-
-              <Link
-                href="/"
-                className="block text-sm font-medium hover:text-primary transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Home
-              </Link>
-              <Link
-                href="/shop"
-                className="block text-sm font-medium hover:text-primary transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Shop
-              </Link>
-              <Link
-                href="/about"
-                className="block text-sm font-medium hover:text-primary transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                About
-              </Link>
-              <Link
-                href="/blog"
-                className="block text-sm font-medium hover:text-primary transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Blog
-              </Link>
-              <Link
-                href="/track-order"
-                className="block text-sm font-medium hover:text-primary transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Track Order
-              </Link>
-              <Link
-                href="/contact"
-                className="block text-sm font-medium hover:text-primary transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Contact
-              </Link>
+      {isMobileMenuOpen && (
+        <div className="fixed top-[7.5rem] left-0 right-0 bg-background border-b z-40 md:hidden shadow-xl">
+          <div className="container mx-auto px-4 py-4">
+            <div className="mb-4">
+              <SearchBar />
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <nav className="flex flex-col">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="py-3 px-2 text-base font-medium hover:text-primary transition-colors border-b border-gray-800 last:border-0"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              {!user && (
+                <Link
+                  href="/sign-in"
+                  className="py-3 px-2 text-base font-medium hover:text-primary transition-colors border-b border-gray-800"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+              )}
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="py-3 px-2 text-base font-medium hover:text-primary transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Admin Panel
+                </Link>
+              )}
+            </nav>
+          </div>
+        </div>
+      )}
     </>
   );
 }
-
