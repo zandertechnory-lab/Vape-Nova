@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -12,7 +12,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import toast from "react-hot-toast";
 
-export default function SignInPage() {
+function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
@@ -48,6 +48,42 @@ export default function SignInPage() {
   };
 
   return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          value={formData.email}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          type="password"
+          value={formData.password}
+          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          required
+        />
+      </div>
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? "Signing in..." : "Sign In"}
+      </Button>
+      <p className="mt-4 text-center text-sm text-gray-400">
+        Don&apos;t have an account?{" "}
+        <Link href="/account/register" className="text-primary hover:underline">
+          Register
+        </Link>
+      </p>
+    </form>
+  );
+}
+
+export default function SignInPage() {
+  return (
     <div className="min-h-screen">
       <Navbar />
       <div className="container mx-auto px-4 py-20">
@@ -57,41 +93,9 @@ export default function SignInPage() {
               <CardTitle className="text-2xl">Sign In</CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Signing in..." : "Sign In"}
-                </Button>
-              </form>
-              <p className="mt-4 text-center text-sm text-gray-400">
-                Don't have an account?{" "}
-                <Link href="/account/register" className="text-primary hover:underline">
-                  Register
-                </Link>
-              </p>
+              <Suspense fallback={<div className="h-48 animate-pulse bg-gray-800 rounded" />}>
+                <SignInForm />
+              </Suspense>
             </CardContent>
           </Card>
         </div>
@@ -100,4 +104,3 @@ export default function SignInPage() {
     </div>
   );
 }
-
